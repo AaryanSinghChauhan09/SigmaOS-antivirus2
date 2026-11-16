@@ -1,47 +1,23 @@
-# Component Name
+# Antivirus
 
-Component description.
+Antivirus is a SigmaOS component providing a functional domain model for `antivirus2` with validated state, deterministic storage, and typed errors.
 
-## Overview
+## Description
 
-This component provides $tool_name compatibility for SigmaOS.
+Antivirus antivirus compatibility layer for SigmaOS
 
-## Features
+## Domain model
 
-- Feature 1
-- Feature 2
+- `Security` — domain entity
 
-## Usage
+## API
 
-```rust
-use sigmaos_server::Server;
-
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    let mut server = Server::new()?;
-    server.init().await?;
-    Ok(())
-}
-```
-
-## Building
-
-```bash
-cargo build --release
-```
+- `new()`
 
 ## Testing
 
-```bash
+```sh
 cargo test
 ```
 
-## License
-
-MIT License - see LICENSE file for details
-
-## Inspiration
-
-- $tool_name server
-- network services
-- security tools
+Tests are deterministic, isolated, and self-validating.
