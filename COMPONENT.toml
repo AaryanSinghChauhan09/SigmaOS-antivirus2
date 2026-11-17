@@ -3,7 +3,7 @@ name = "SigmaOS-antivirus2"
 tier = 2
 stability = "scaffold"
 language = "rust"
-description = "antivirus2 component"
+description = "Antivirus antivirus compatibility layer for SigmaOS"
 upstream = []
 
 [contract]
