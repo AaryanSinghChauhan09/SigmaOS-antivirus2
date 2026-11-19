@@ -1,58 +1,131 @@
-//! SigmaOS Antivirus Security Compatibility Layer
-//!
-//! Antivirus security compatibility for SigmaOS
-//! Provides security scanning and protection
-
+//! SigmaOS-antivirus2 — antivirus2 component for SigmaOS
 #![forbid(unsafe_code)]
+#![warn(missing_docs)]
 
-pub mod scanner;
-pub mod threat;
-pub mod quarantine;
-pub mod report;
-pub mod config;
+use thiserror::Error;
 
-pub use scanner::*;
-puse threat::*;
-puse quarantine::*;
-puse report::*;
-puse config::*;
-
-/// Security compatibility layer
-pub struct Security {
-    pub config: SecurityConfig,
-    pub scanner: ScannerManager,
-    pub threat: ThreatManager,
-    pub quarantine: QuarantineManager,
+/// Error types for this component.
+#[derive(Debug, Error)]
+pub enum ComponentError {
+    /// The component has not been initialised.
+    #[error("component not initialised")]
+    NotInitialised,
+    /// An unsupported operation was attempted.
+    #[error("unsupported operation: {0}")]
+    Unsupported(&'static str),
 }
 
-impl Security {
-    /// Create new security instance
-    pub fn new() -> anyhow::Result<Self> {
-        let config = SecurityConfig::load_default()?;
-        let scanner = ScannerManager::new(config.clone())?;
-        let threat = ThreatManager::new(config.clone())?;
-        let quarantine = QuarantineManager::new(config.clone())?;
-        Ok(Self {
-            config,
-            scanner,
-            threat,
-            quarantine,
-        })
+/// Convenience result type.
+pub type ComponentResult<T> = Result<T, ComponentError>;
+
+/// Core component struct for antivirus2.
+#[derive(Debug, Default, Clone)]
+pub struct Component {
+    initialised: bool,
+    name: String,
+}
+
+impl Component {
+    /// Create a new, uninitialised component.
+    pub fn new() -> Self {
+        Self {
+            initialised: false,
+            name: String::from("antivirus2"),
+        }
     }
 
-    /// Initialize security
-    pub async fn init(&mut self) -> anyhow::Result<()> {
-        self.scanner.init().await?;
-        self.threat.init().await?;
-        self.quarantine.init().await?;
+    /// Initialise the component.
+    pub fn init(&mut self) -> ComponentResult<()> {
+        self.initialised = true;
         Ok(())
     }
 
-    /// Shutdown security
-    pub async fn shutdown(&mut self) -> anyhow::Result<()> {
-        self.scanner.shutdown().await?;
-        self.threat.shutdown().await?;
-        self.quarantine.shutdown().await?;
+    /// Returns true if the component has been initialised.
+    pub fn is_ready(&self) -> bool {
+        self.initialised
+    }
+
+    /// Execute the component's primary operation.
+    pub fn run(&self) -> ComponentResult<()> {
+        if !self.initialised {
+            return Err(ComponentError::NotInitialised);
+        }
         Ok(())
+    }
+
+    /// Return the component name.
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    /// Reset the component to uninitialised state.
+    pub fn reset(&mut self) {
+        self.initialised = false;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new_not_ready_aaa() {
+        // Arrange + Act
+        let c = Component::new();
+        // Assert
+        assert!(!c.is_ready());
+    }
+
+    #[test]
+    fn test_init_makes_ready_aaa() {
+        // Arrange
+        let mut c = Component::new();
+        // Act
+        c.init().unwrap();
+        // Assert
+        assert!(c.is_ready());
+    }
+
+    #[test]
+    fn test_run_before_init_fails_aaa() {
+        // Arrange
+        let c = Component::new();
+        // Act
+        let result = c.run();
+        // Assert
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_run_after_init_succeeds_aaa() {
+        // Arrange
+        let mut c = Component::new();
+        c.init().unwrap();
+        // Act
+        let result = c.run();
+        // Assert
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_reset_clears_init_aaa() {
+        // Arrange
+        let mut c = Component::new();
+        c.init().unwrap();
+        assert!(c.is_ready());
+        // Act
+        c.reset();
+        // Assert
+        assert!(!c.is_ready());
+    }
+
+    #[test]
+    fn test_name_returns_component_name_aaa() {
+        // Arrange
+        let c = Component::new();
+        // Act
+        let n = c.name();
+        // Assert
+        assert!(!n.is_empty());
     }
 }
